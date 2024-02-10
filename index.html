@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Earth with Multiple Particle Rings</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/GLTFLoader.js"></script>
+    <script>
+        // Set up the scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Load Earth model
+        const loader = new THREE.GLTFLoader();
+        loader.load('Earth_1.glb', function (gltf) {
+            const earthModel = gltf.scene;
+            scene.add(earthModel);
+        });
+
+        // Create particles for the rings
+        const particles = new THREE.Group();
+
+        const ringConfigs = [
+            { particleCount: 500, radius: 7, color: 0xffff00 },
+            { particleCount: 300, radius: 10, color: 0xff0000 },
+            { particleCount: 200, radius: 13, color: 0x00ff00 }
+        ];
+
+        ringConfigs.forEach(config => {
+            const { particleCount, radius, color } = config;
+
+            for (let i = 0; i < particleCount; i++) {
+                const particleGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+                const particleMaterial = new THREE.MeshBasicMaterial({ color });
+                const particle = new THREE.Mesh(particleGeometry, particleMaterial);
+
+                // Calculate position in a circular pattern
+                const angle = Math.random() * Math.PI * 2;
+                const x = Math.cos(angle) * radius;
+                const z = Math.sin(angle) * radius;
+
+                particle.position.set(x, 0, z);
+                particles.add(particle);
+            }
+        });
+
+        scene.add(particles);
+
+        // Set camera position
+        camera.position.z = 25;
+        camera.position.y = 5;
+
+        // Render the scene
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.y -= 0.01; // Rotate particle rings
+            renderer.render(scene, camera);
+        }
+        animate();
+    </script>
+</body>
+</html>
